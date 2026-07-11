@@ -20,4 +20,11 @@ router.get("/me", getSingleUser);
 // router.post("/unblock-user", unblockUser);
 // router.get("/single-user", getSingleUser);
 
+/*===================================================================
+Admin Routes
+=============================================*/
+router.post("/admin/login", loginValidation, validate, login);
+router.post("/admin/logout", logout);
+router.get("/admin/me", getSingleUser);
+
 export default router;

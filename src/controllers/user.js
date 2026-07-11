@@ -166,3 +166,40 @@ export const allUsers = async (req, res) => {};
 export const deleteUser = async (req, res) => {};
 export const blockUser = async (req, res) => {};
 export const unblockUser = async (req, res) => {};
+
+/*===================================================================
+Admin Controllers
+=============================================*/
+export const adminLogin = async (req, res) => {
+	const { email, password } = req.body;
+	try {
+		const user = await User.adminLogin(email, String(password));
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		setTokenCookies(res, user._id);
+
+		res.status(201).json({
+			user: {
+				name: user.name,
+				email: user.email,
+				id: user._id,
+				isAdmin: user.isAdmin,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+			},
+			success: true,
+		});
+	} catch (error) {
+		const errors = handleError(error);
+		if (Object.keys(errors).length)
+			return res.status(400).json({
+				success: false,
+				errors,
+			});
+
+		res.status(500).json({
+			success: false,
+			errors: { internalErr: error.message },
+		});
+	}
+};

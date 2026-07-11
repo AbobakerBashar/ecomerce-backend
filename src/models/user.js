@@ -47,6 +47,19 @@ userSchema.statics.login = async function (email, password) {
 	return user;
 };
 
+// Admin login
+userSchema.statics.adminLogin = async function (email, password) {
+	const user = await this.findOne({ email }).select("+password");
+	if (!user) throw Error("Incorrect email");
+
+	const match = await bcrypt.compare(password, user.password);
+	if (!match) throw Error("Incorrect password");
+
+	if (!user.isAdmin) throw Error("You are not an admin");
+
+	return user;
+};
+
 const User = mongoose.model("User", userSchema);
 
 export default User;
