@@ -95,8 +95,54 @@ export const getNewArrivalsProducts = async (req, res) => {
 	}
 };
 
-// Get Product By Id
-export const getSingleProduct = async (req, res) => {};
+// Get Product By slug
+export const getSingleProduct = async (req, res) => {
+	const slug = req.params?.slug;
+	if (!slug)
+		return res.status(400).json({ success: false, message: "Invalid slug" });
+
+	try {
+		const product = await Product.findOne({ slug })
+			.select(
+				"name brand slug description bestSeller images price salePrice discount stock colors sizes createdAt",
+			)
+			.populate("category", "name slug");
+		if (!product)
+			res.status(404).json({ success: false, message: "Product not found" });
+
+		res.status(200).json({ success: true, product });
+	} catch (error) {
+		res.json({ success: false, message: error.message });
+	}
+};
+
+// Get Similar Products
+export const getSimilarProducts = async (req, res) => {
+	const categoryId = req.params?.categoryId;
+	const limit = req.query?.limit || 6;
+
+	if (!categoryId)
+		return res
+			.status(400)
+			.json({ success: false, message: "Invalid category id" });
+
+	try {
+		const products = await Product.find({ category: categoryId })
+			.select(
+				"name brand slug description bestSeller images price salePrice discount colors sizes createdAt",
+			)
+			.populate("category", "name slug")
+			.limit(limit);
+		if (!products)
+			return res
+				.status(404)
+				.json({ success: false, message: "No products found" });
+
+		res.status(200).json({ success: true, products });
+	} catch (error) {
+		res.json({ success: false, message: error.message });
+	}
+};
 
 // Update Product By Id
 export const updateProduct = async (req, res) => {};

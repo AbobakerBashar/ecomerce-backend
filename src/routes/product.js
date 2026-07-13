@@ -7,6 +7,7 @@ import {
 	getSingleProduct,
 	updateProduct,
 	getNewArrivalsProducts,
+	getSimilarProducts,
 } from "../controllers/product.js";
 import { productValidation } from "../validators/product.js";
 import { validate } from "../middleware/validate .js";
@@ -36,7 +37,9 @@ router.get("/", getAllProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/new-arrivals", getNewArrivalsProducts);
 
-router.get("/:id", getSingleProduct);
+router.get("/:slug", getSingleProduct);
+
+router.get("/:categoryId/similar", getSimilarProducts);
 
 router.patch("/:id", updateProduct);
 
