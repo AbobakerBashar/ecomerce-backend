@@ -36,7 +36,7 @@ const setTokenCookies = (res, id) => {
 		maxAge: MAX_AGE,
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "None",
+		sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
 	});
 };
 
@@ -111,7 +111,7 @@ export const logout = async (req, res) => {
 		res.clearCookie("jwt", {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
+			sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
 		});
 
 		res.status(200).json({ message: "Logged out successfully", success: true });
@@ -125,6 +125,7 @@ export const login = async (req, res) => {
 	const { email, password } = req.body;
 	try {
 		const user = await User.login(email, String(password));
+
 		if (!user) return res.status(404).json({ message: "User not found" });
 
 		setTokenCookies(res, user._id);

@@ -1,7 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 import Product from "../models/product.js";
+import Category from "../models/category.js";
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
+const LIMIT = 15;
 
 // Create Product
 export const createProduct = async (req, res) => {
@@ -10,7 +12,6 @@ export const createProduct = async (req, res) => {
 
 		images?.filter((image) => image);
 		const body = req.body;
-		console.log("BODY", body);
 
 		const imagesUrls = await Promise.all(
 			images.map(async (image) => {
@@ -35,23 +36,79 @@ export const createProduct = async (req, res) => {
 
 // Get All Products
 export const getAllProducts = async (req, res) => {
+	const filter = {};
+
+	const {
+		category,
+		brand,
+		color,
+		size,
+		page = 1,
+		limit = LIMIT,
+		sort,
+	} = req.query;
+
+	if (brand) filter.brand = brand;
+
+	if (color) {
+		const colors = Array.isArray(color) ? color : [color];
+		filter.colors = { $in: colors };
+	}
+
+	if (size) {
+		const sizes = Array.isArray(size) ? size : [size];
+
+		filter.sizes = { $in: sizes };
+	}
+
+	let sortOption;
+	switch (sort) {
+		case "price-low":
+			sortOption = { price: 1 };
+			break;
+		case "price-high":
+			sortOption = { price: -1 };
+			break;
+		case "newest":
+			sortOption = { createdAt: -1 };
+			break;
+		case "featured":
+			sortOption = { isFeatured: -1 };
+			break;
+		default:
+			sortOption = { createdAt: -1 };
+			break;
+	}
 	try {
-		const products = await Product.find()
+		const categoryId = await Category.findOne({ name: category }).select("_id");
+		if (categoryId) filter.category = categoryId._id;
+
+		const products = await Product.find(filter)
+			.skip((page - 1) * limit)
 			.select(
 				"name brand slug description bestSeller images price salePrice discount colors sizes createdAt",
 			)
-			.populate("category", "name slug");
+			.populate("category", "name slug")
+			.sort(sortOption)
+			.limit(20);
 		if (!products)
 			return res
 				.starus(404)
 				.json({ success: false, message: "No products found" });
+
+		const totalProducts = await Product.countDocuments(filter);
+		const totalPages = Math.ceil(totalProducts / limit);
 
 		const result = products.map((product) => ({
 			...product.toObject(),
 			newArrival: Date.now() - product.createdAt.getTime() <= ONE_DAY,
 		}));
 
-		res.status(200).json({ success: true, products: result });
+		res.status(200).json({
+			success: true,
+			products: result,
+			pagination: { totalProducts, totalPages, currentPage: Number(page) },
+		});
 	} catch (error) {
 		res.json({ success: false, message: error.message });
 	}
