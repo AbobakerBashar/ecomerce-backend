@@ -10,7 +10,7 @@ import {
 	getSimilarProducts,
 } from "../controllers/product.js";
 import { productValidation } from "../validators/product.js";
-import { validate } from "../middleware/validate .js";
+import { validate } from "../middleware/validate.js";
 import { upload } from "../middleware/multer.js";
 import { parseProductData } from "../middleware/parseProductData.js";
 import { validateImages } from "../middleware/validateImages.js";

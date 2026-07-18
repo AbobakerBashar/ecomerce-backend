@@ -1,25 +1,34 @@
 import { Router } from "express";
 import {
-	clearCart,
-	deleteCartItem,
-	getById,
+	addToCart,
 	getCart,
 	updateCartItem,
-} from "../controllers/cart";
+	deleteCartItem,
+	clearCart,
+	getCartItemCount,
+} from "../controllers/cart.js";
+import { cartValidation, updateCartValidation } from "../validators/cart.js";
+import { validate } from "../middleware/validate.js";
+import { auth } from "../middleware/auth.js";
 
 const router = Router();
 
-// Get All Cart Items
-router.get("/", getCart);
+// Add Items to the Cart
+router.post("/", cartValidation, validate, auth, addToCart);
 
-// Get By Id
-router.get("/:id", getById);
+// Get All Cart Items
+router.get("/", auth, getCart);
+
+// Get Cart Length
+router.get("/count", auth, getCartItemCount);
 
 // Update Cart Item
-router.patch("/:id", updateCartItem);
+router.patch("/:id", updateCartValidation, validate, auth, updateCartItem);
 
 // Delete Cart Item
-router.delete("/:id", deleteCartItem);
+router.delete("/:id", auth, deleteCartItem);
 
 // Clear Cart
-router.delete("/", clearCart);
+router.delete("/", auth, clearCart);
+
+export default router;
