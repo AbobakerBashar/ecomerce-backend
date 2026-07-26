@@ -37,7 +37,7 @@ export const stripeWebhook = async (req, res) => {
 
 			const cart = await Cart.findById(cartId).populate(
 				"items.product",
-				"salePrice price stock",
+				"name salePrice price stock",
 			);
 			if (!cart) {
 				return res.status(404).json({
@@ -82,11 +82,11 @@ export const stripeWebhook = async (req, res) => {
 
 				return res.json({ received: true });
 			} catch (err) {
-				console.error(err);
-				return res.status(500).json({
-					success: false,
-					message: "Internal server error",
-				});
+				console.error("🔥 WEBHOOK CRASHED! Reason:", err.message);
+				console.error("Full Error:", err);
+				return res
+					.status(500)
+					.json({ success: false, message: "Internal server error" });
 			}
 		}
 
