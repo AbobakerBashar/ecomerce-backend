@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { stripeClient } from "../config/stripe.js";
 import Cart from "../models/cart.js";
 import Order from "../models/order.js";
+import Product from "../models/product.js";
 
 dotenv.config();
 
