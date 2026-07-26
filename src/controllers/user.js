@@ -26,18 +26,19 @@ const handleError = (err) => {
 	return errors;
 };
 
-// handle set cookies
-const setTokenCookies = (res, id) => {
+// Handle Create Token
+const handleCreateToken = (res, id) => {
 	const token = jwt.sign({ id }, process.env.JWT_SECRET, {
 		expiresIn: "3d",
 	});
 
-	res.cookie("jwt", token, {
-		maxAge: MAX_AGE,
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
-	});
+	// res.cookie("jwt", token, {
+	// 	maxAge: MAX_AGE,
+	// 	httpOnly: true,
+	// 	secure: process.env.NODE_ENV === "production",
+	// 	sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
+	// });
+	return token;
 };
 
 // Create an account
@@ -53,11 +54,12 @@ export const register = async (req, res) => {
 				},
 			});
 
-		// send token through cookies
-		setTokenCookies(res, user._id);
+		//
+		const token = handleCreateToken(res, user._id);
 
 		res.status(201).json({
 			success: true,
+			token,
 			user: {
 				name: user.name,
 				email: user.email,
@@ -128,9 +130,10 @@ export const login = async (req, res) => {
 
 		if (!user) return res.status(404).json({ message: "User not found" });
 
-		setTokenCookies(res, user._id);
+		const token = handleCreateToken(res, user._id);
 
 		res.status(201).json({
+			token,
 			user: {
 				name: user.name,
 				email: user.email,

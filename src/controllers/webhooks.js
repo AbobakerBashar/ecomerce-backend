@@ -65,7 +65,7 @@ export const stripeWebhook = async (req, res) => {
 						size: item.size,
 					})),
 					total: session.amount_total / 100,
-					paymentStatus: "paid",
+					paymentStatus: session.payment_status,
 					stripeSessionId: session.id,
 					stripePaymentIntentId: session.payment_intent,
 					shippingAddress: address,
