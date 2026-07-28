@@ -25,15 +25,33 @@ const userSchema = new mongoose.Schema(
 			required: [true, "Please enter your password"],
 			minlength: [6, "Minimum password length is 6 characters"],
 		},
+		phone: String,
 		isAdmin: {
 			type: Boolean,
 			default: false,
 		},
+		addresses: [
+			{
+				phone: String,
+				label: String,
+				city: String,
+				street: String,
+				state: String,
+				country: String,
+				zip: String,
+				isDefault: {
+					type: Boolean,
+					default: false,
+				},
+			},
+		],
 	},
 	{ timestamps: true },
 );
 
 userSchema.pre("save", async function () {
+	if (!this.isModified("password")) return;
+
 	const salt = await bcrypt.genSalt(10);
 	this.password = await bcrypt.hash(this.password, salt);
 });

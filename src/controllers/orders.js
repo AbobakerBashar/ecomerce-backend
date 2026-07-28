@@ -1,7 +1,8 @@
 import Order from "../models/order.js";
+import Product from "../models/product.js";
 
 export const getAllOrders = async (req, res) => {
-	const { q, status } = req.query;
+	const { q, status, limit = 15 } = req.query;
 
 	const filter = {};
 	if (q) filter._id = q;
@@ -10,6 +11,7 @@ export const getAllOrders = async (req, res) => {
 	try {
 		const orders = await Order.find({ user: req.userId, ...filter })
 			.select("shippingAddress items total paymentStatus orderStatus")
+			.sort({ createdAt: -1 })
 			.populate("items.product", "images name");
 		if (!orders)
 			return res.status(404).json({
@@ -65,7 +67,11 @@ export const getOrder = async (req, res) => {
 			stripeSessionId: session_id,
 		})
 			.select("shippingAddress items total paymentStatus orderStatus")
-			.populate("items.product", "images name");
+			.populate({
+				path: "items.product",
+				select: "images name",
+			});
+
 		if (!order)
 			return res.status(404 || order.items?.length === 0).json({
 				message: "Order not found",
@@ -102,13 +108,27 @@ export const getOrder = async (req, res) => {
 	}
 };
 
-export const getTotalOrders = async (req, res) => {
+export const getOrderStats = async (req, res) => {
 	try {
 		const count = await Order.countDocuments({ user: req.userId });
 
+		const completed = await Order.countDocuments({
+			user: req.userId,
+			orderStatus: "completed",
+		});
+
+		const inProgress = await Order.countDocuments({
+			user: req.userId,
+			orderStatus: { $in: ["processing", "shipped", "pending"] },
+		});
+
 		res.status(200).json({
 			success: true,
-			count,
+			stats: {
+				count,
+				inProgress,
+				completed,
+			},
 		});
 	} catch (error) {
 		res.status(500).json({

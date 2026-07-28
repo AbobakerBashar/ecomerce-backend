@@ -32,3 +32,32 @@ export const loginValidation = [
 
 	body("password").notEmpty().withMessage("Password is required"),
 ];
+
+export const resetValidation = [
+	body("newPassword")
+		.notEmpty()
+		.withMessage("Password is required")
+		.isLength({ min: 6 })
+		.withMessage("Password must be at least 6 characters long"),
+	body("currentPassword")
+		.notEmpty()
+		.withMessage("Password is required")
+		.isLength({ min: 6 })
+		.withMessage("Password must be at least 6 characters long"),
+];
+
+export const updateValidation = [
+	body("email")
+		.trim()
+		.notEmpty()
+		.withMessage("Email is required")
+		.isEmail()
+		.withMessage("Please enter a valid email"),
+
+	body("name")
+		.trim()
+		.notEmpty()
+		.withMessage("Name is required")
+		.isLength({ min: 3, max: 50 })
+		.withMessage("Name must be between 3 and 50 characters"),
+];

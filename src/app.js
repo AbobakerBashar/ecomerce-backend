@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import userRoutes from "./routes/user.js";
+import userAddressesRoutes from "./routes/addresses.js";
 import productRoutes from "./routes/product.js";
 import categoryRoutes from "./routes/category.js";
 import cartRoutes from "./routes/cart.js";
@@ -23,7 +24,7 @@ app.use(
 	cors({
 		origin: process.env.CLIENT_URL,
 		credentials: true,
-		methods: ["GET", "POST", "PATCH", "DELETE"],
+		methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
 		allowedHeaders: ["Content-Type"],
 	}),
 );
@@ -37,6 +38,7 @@ app.get("/", (req, res) => {
 
 // USERS ROUTES
 app.use("/api/users", userRoutes);
+app.use("/api/user/addresses", userAddressesRoutes);
 
 // PRODUCTS ROUTES
 app.use("/api/products", productRoutes);

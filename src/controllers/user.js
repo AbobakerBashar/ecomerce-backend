@@ -1,7 +1,6 @@
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
-
-const MAX_AGE = 3 * 24 * 60 * 60 * 1000;
+import bcrypt from "bcrypt";
 
 // handle error
 const handleError = (err) => {
@@ -32,12 +31,6 @@ const handleCreateToken = (res, id) => {
 		expiresIn: "3d",
 	});
 
-	// res.cookie("jwt", token, {
-	// 	maxAge: MAX_AGE,
-	// 	httpOnly: true,
-	// 	secure: process.env.NODE_ENV === "production",
-	// 	sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
-	// });
 	return token;
 };
 
@@ -94,31 +87,36 @@ export const getSingleUser = async (req, res) => {
 
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		if (!decoded) return res.status(401).json({ message: "Unauthorized" });
-
 		const user = await User.findById(decoded.id);
 		if (!user) return res.status(404).json({ message: "User not found" });
 
+		const addresses = user.addresses.map((a) => ({
+			label: a.label,
+			phone: a.phone,
+			street: a.street,
+			city: a.city,
+			state: a.state,
+			zip: a.zip,
+			country: a.country,
+			isDefault: a.isDefault,
+			id: a._id,
+		}));
+
 		res.status(200).json({
-			user,
+			user: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				phone: user.phone,
+				isAdmin: user.isAdmin,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+				addresses,
+			},
 			success: true,
 		});
 	} catch (error) {
 		return res.status(500).json({ message: error.message });
-	}
-};
-
-// Logout user
-export const logout = async (req, res) => {
-	try {
-		res.clearCookie("jwt", {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
-		});
-
-		res.status(200).json({ message: "Logged out successfully", success: true });
-	} catch (error) {
-		return res.status(500).json({ success: false, message: error.message });
 	}
 };
 
@@ -160,11 +158,71 @@ export const login = async (req, res) => {
 	}
 };
 
-//
+//UPDTAE PROFILE
+export const editProfile = async (req, res) => {
+	const { email, name, phone } = req.body;
+	console.log({ email, name, phone });
+	try {
+		const user = await User.findById(req.userId);
+		if (!user)
+			return res.status(404).json({
+				success: false,
+				message: "User not found.",
+			});
+
+		if (email) user.email = email;
+		if (name) user.name = name;
+		if (phone) user.phone = phone;
+
+		await user.save();
+
+		res.status(200).json({
+			user,
+			success: true,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	}
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
+	const { newPassword, currentPassword } = req.body;
+
+	try {
+		const user = await User.findById(req.userId).select("+password");
+		if (!user)
+			return res.status(404).json({
+				success: false,
+				message: "User not found.",
+			});
+
+		const isMatch = await bcrypt.compare(currentPassword, user.password);
+		if (!isMatch)
+			return res.status(404).json({
+				success: false,
+				message: "Incorrect password.",
+			});
+		user.password = newPassword;
+		await user.save();
+
+		res.status(200).json({
+			success: true,
+			message: "Password changed successfully!",
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: error.message,
+		});
+	}
+};
+
 export const forgotPassword = async (req, res) => {};
-export const resetPassword = async (req, res) => {};
 export const getMyProfile = async (req, res) => {};
-export const editProfile = async (req, res) => {};
 export const changePassword = async (req, res) => {};
 export const allUsers = async (req, res) => {};
 export const deleteUser = async (req, res) => {};
