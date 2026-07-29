@@ -11,6 +11,8 @@ import cartRoutes from "./routes/cart.js";
 import checkoutRoutes from "./routes/checkout.js";
 import webhooksRoutes from "./routes/webhooks.js";
 import ordersRoutes from "./routes/orders.js";
+import contactRoutes from "./routes/contact.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
 
@@ -54,5 +56,11 @@ app.use("/api/checkout", checkoutRoutes);
 
 // ORDER ROUTES
 app.use("/api/orders", ordersRoutes);
+
+// CONTACT ROUTES
+app.use("/api/contact", contactRoutes);
+
+// ERROR HANDLER
+app.use(errorHandler);
 
 export default app;

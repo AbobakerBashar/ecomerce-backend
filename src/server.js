@@ -7,11 +7,37 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
+let server;
+
+process.on("uncaughtException", (err) => {
+	console.error("Uncaught Exception:", err);
+
+	if (server) {
+		server.close(() => process.exit(1));
+	} else {
+		process.exit(1);
+	}
+});
+
+process.on("unhandledRejection", (err) => {
+	console.error("Unhandled Rejection:", err);
+
+	if (server) {
+		server.close(() => process.exit(1));
+	} else {
+		process.exit(1);
+	}
+});
+
 dbConnection()
 	.then(() => {
 		connectCloudinary();
-		app.listen(PORT, () => {
+
+		server = app.listen(PORT, () => {
 			console.log(`Database connected & Server running on port ${PORT}`);
 		});
 	})
-	.catch(console.error);
+	.catch((err) => {
+		console.error(err);
+		process.exit(1);
+	});
