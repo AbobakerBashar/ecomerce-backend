@@ -80,7 +80,7 @@ export const getAllProducts = async (req, res) => {
 			break;
 	}
 	try {
-		const categoryId = await Category.findOne({ name: category }).select("_id");
+		const categoryId = await Category.findOne({ slug: category }).select("_id");
 		if (categoryId) filter.category = categoryId._id;
 
 		const products = await Product.find(filter)
