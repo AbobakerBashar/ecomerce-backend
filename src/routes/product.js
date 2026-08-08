@@ -19,10 +19,6 @@ const router = Router();
 
 router.post(
 	"/",
-	(req, res, next) => {
-		console.log("Request reached route", req.files);
-		next();
-	},
 
 	upload.array("images", 4),
 	parseProductData,

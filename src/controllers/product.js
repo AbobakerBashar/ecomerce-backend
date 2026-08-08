@@ -36,7 +36,7 @@ export const createProduct = async (req, res) => {
 
 // Get All Products
 export const getAllProducts = async (req, res) => {
-	const filter = {};
+	let filter = {};
 
 	const {
 		category,
@@ -46,6 +46,7 @@ export const getAllProducts = async (req, res) => {
 		page = 1,
 		limit = LIMIT,
 		sort,
+		search,
 	} = req.query;
 
 	if (brand) filter.brand = brand;
@@ -59,6 +60,25 @@ export const getAllProducts = async (req, res) => {
 		const sizes = Array.isArray(size) ? size : [size];
 
 		filter.sizes = { $in: sizes };
+	}
+	if (search) {
+		const searchRegex = new RegExp(search, "i");
+
+		const matchingCategories = await Category.find({
+			$or: [{ name: searchRegex }, { slug: searchRegex }],
+		}).select("_id");
+
+		const categoryIds = matchingCategories
+			? matchingCategories.map((category) => category._id)
+			: "";
+
+		filter = {
+			$or: [
+				{ name: searchRegex },
+				{ category: { $in: categoryIds } },
+				{ brand: searchRegex },
+			],
+		};
 	}
 
 	let sortOption;
@@ -80,8 +100,12 @@ export const getAllProducts = async (req, res) => {
 			break;
 	}
 	try {
-		const categoryId = await Category.findOne({ slug: category }).select("_id");
-		if (categoryId) filter.category = categoryId._id;
+		if (category) {
+			const categoryId = await Category.findOne({ slug: category }).select(
+				"_id",
+			);
+			if (categoryId) filter.category = categoryId._id;
+		}
 
 		const products = await Product.find(filter)
 			.skip((page - 1) * limit)
